@@ -252,33 +252,34 @@ func setUpPlayback(serverConnectionHandlerID uint64, uri string, videoPassword s
 	}
 
 	// attempt to resolve
-	var errorStream io.ReadCloser
-	inputStream, errorStream, err := resolvers.Resolve(u, videoPassword)
+	result, err := resolvers.Resolve(u, videoPassword)
 	if err != nil {
 		return
 	}
-	if inputStream == nil {
+	if result == nil {
 		err = errors.New("This URL could not be resolved. Please check if you spelled it correctly.")
 		return
 	}
-	currentInputStream = inputStream
-	go func() {
-		defer catchPanic()
-		logDebug("RESOLVER STDERR <listener loop started>")
-		defer logDebug("RESOLVER STDERR <listener loop stopped>")
-		r := bufio.NewReader(errorStream)
-		for {
-			item, err := r.ReadString('\n')
-			if err != nil {
-				logDebug("RESOLVER: <err: %s>", err.Error())
-				break
+	currentInputStream = result.StreamOutput
+	if result.ErrorOutput != nil {
+		go func() {
+			defer catchPanic()
+			logDebug("RESOLVER STDERR <listener loop started>")
+			defer logDebug("RESOLVER STDERR <listener loop stopped>")
+			r := bufio.NewReader(result.ErrorOutput)
+			for {
+				item, err := r.ReadString('\n')
+				if err != nil {
+					logDebug("RESOLVER: <err: %s>", err.Error())
+					break
+				}
+				for _, line := range strings.Split(item, "\r") {
+					line = strings.Trim(line, "\r\n")
+					logDebug("RESOLVER STDERR: %s", line)
+				}
 			}
-			for _, line := range strings.Split(item, "\r") {
-				line = strings.Trim(line, "\r\n")
-				logDebug("RESOLVER STDERR: %s", line)
-			}
-		}
-	}()
+		}()
+	}
 
 	// start decoder
 	logDebug("About to start new decoder...")
@@ -304,9 +305,9 @@ func setUpPlayback(serverConnectionHandlerID uint64, uri string, videoPassword s
 
 	go func() {
 		defer catchPanic()
-		defer inputStream.Close()
+		defer result.StreamOutput.Close()
 		defer decoder.Close()
-		io.Copy(decoder, inputStream)
+		io.Copy(decoder, result.StreamOutput)
 	}()
 
 	// Needs to be disabled because otherwise the sound will not be let through by TeamSpeak

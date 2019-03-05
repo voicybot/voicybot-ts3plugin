@@ -13,7 +13,7 @@ func init() {
 }
 
 func RegisterResolver() {
-	var r resolvers.URLToReadCloserResolver = new(YoutubeDLResolver)
+	var r resolvers.Resolver = new(YoutubeDLResolver)
 	resolvers.Register(r)
 }
 

@@ -1,12 +1,9 @@
 package youtubedl
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/url"
-	"os/exec"
-	"strings"
+
+	"github.com/voicybot/voicybot-ts3plugin/resolvers"
 
 	"github.com/BrianAllred/goydl"
 )
@@ -22,7 +19,7 @@ func (resolver *YoutubeDLResolver) DisplayName() string {
 	return resolver.Id()
 }
 
-func (resolver *YoutubeDLResolver) ResolveURLToReadCloser(uri *url.URL, videoPassword string) (streamOutput io.ReadCloser, errorOutput io.ReadCloser, err error) {
+func (resolver *YoutubeDLResolver) ResolveURL(uri *url.URL, videoPassword string) (result *resolvers.ResolveResult, err error) {
 	ydl := goydl.NewYoutubeDl()
 	ydl.VideoURL = uri.String()
 	ydl.Options.AbortOnError.Value = true
@@ -31,17 +28,18 @@ func (resolver *YoutubeDLResolver) ResolveURLToReadCloser(uri *url.URL, videoPas
 	ydl.Options.Output.Value = "-"
 	ydl.Options.Quiet.Value = true
 
-	var proc *exec.Cmd
-	proc, err = ydl.Download()
+	_, err = ydl.Download()
 	if err != nil {
 		return
 	}
 
-	streamOutput = ydl.Stdout
-	errorOutput = ioutil.NopCloser(
-		io.MultiReader(
-			strings.NewReader(fmt.Sprintf("%s %+v\n", proc.Path, proc.Args)),
-			ydl.Stderr,
-		))
+	streamOutput := ydl.Stdout
+	errorOutput := ydl.Stderr
+
+	result = &resolvers.ResolveResult{
+		StreamOutput: streamOutput,
+		ErrorOutput:  errorOutput,
+		Title:        ydl.Info.Title,
+	}
 	return
 }
