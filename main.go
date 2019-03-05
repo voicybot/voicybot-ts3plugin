@@ -14,9 +14,9 @@ import (
 	"time"
 
 	ts3plugin "github.com/icedream/go-ts3plugin"
-	"github.com/voicybot/voicybot-ts3plugin/resolvers"
 	"github.com/icedream/go-ts3plugin/teamlog"
 	"github.com/icedream/go-ts3plugin/teamspeak"
+	"github.com/voicybot/voicybot-ts3plugin/resolvers"
 
 	// Resolvers
 	_ "github.com/voicybot/voicybot-ts3plugin/resolvers/youtubedl"
@@ -310,6 +310,7 @@ func setUpPlayback(serverConnectionHandlerID uint64, uri string, videoPassword s
 		io.Copy(decoder, inputStream)
 	}()
 
+	// Needs to be disabled because otherwise the sound will not be let through by TeamSpeak
 	ts3plugin.Functions().SetPreProcessorConfigValue(serverConnectionHandlerID, "vad", "false")
 
 	return
@@ -330,6 +331,10 @@ func stopPlayback(serverConnectionHandlerID uint64) (err error) {
 		err = currentInputStream.Close()
 		logDebug("Setting current input stream to nil")
 		currentInputStream = nil
+	}
+
+	logDebug("Flushing output buffer...")
+	for _ = range currentOutputStream {
 	}
 
 	logDebug("Notifying that playback is not running anymore")
