@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	ts3plugin "github.com/icedream/go-ts3plugin"
 	"github.com/icedream/go-ts3plugin/teamlog"
@@ -71,15 +70,15 @@ func init() {
 	ts3plugin.Author = Author
 	ts3plugin.Version = Version
 
-	ts3plugin.OnUserLoggingMessageEvent = func(logMessage string, logLevel teamlog.LogLevel, logChannel string, logID uint64, logTime time.Time, completeLogString string) {
-		// Print all log messages to the current chat tab
-		ts3plugin.Functions().PrintMessageToCurrentTab(
-			fmt.Sprintf("[COLOR=gray][I]%s[/I]\t%s\t[B]%s[/B]\t%s[/COLOR]",
-				logTime,
-				logLevel,
-				logChannel,
-				logMessage))
-	}
+	// ts3plugin.OnUserLoggingMessageEvent = func(logMessage string, logLevel teamlog.LogLevel, logChannel string, logID uint64, logTime time.Time, completeLogString string) {
+	// 	// Print all log messages to the current chat tab
+	// 	ts3plugin.Functions().PrintMessageToCurrentTab(
+	// 		fmt.Sprintf("[COLOR=gray][I]%s[/I]\t%s\t[B]%s[/B]\t%s[/COLOR]",
+	// 			logTime,
+	// 			logLevel,
+	// 			logChannel,
+	// 			logMessage))
+	// }
 
 	ts3plugin.Init = func() (ok bool) {
 		defer catchPanic()
