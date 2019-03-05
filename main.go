@@ -225,6 +225,12 @@ func init() {
 				break loop
 			}
 		}
+
+		if samples.IsEdited() {
+			// Needs to be disabled because otherwise the sound will not be let through by TeamSpeak
+			ts3plugin.Functions().SetPreProcessorConfigValue(serverConnectionHandlerID, "vad", "false")
+		}
+
 		shouldMute = shouldMute && !samples.IsEdited()
 		return
 	}
@@ -309,9 +315,6 @@ func setUpPlayback(serverConnectionHandlerID uint64, uri string, videoPassword s
 		defer decoder.Close()
 		io.Copy(decoder, result.StreamOutput)
 	}()
-
-	// Needs to be disabled because otherwise the sound will not be let through by TeamSpeak
-	ts3plugin.Functions().SetPreProcessorConfigValue(serverConnectionHandlerID, "vad", "false")
 
 	return
 }
